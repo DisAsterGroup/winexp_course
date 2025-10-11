@@ -30,7 +30,8 @@ TODO: Add an experiment
 ### [Export Address Table (EAT)](https://ferreirasc.github.io/PE-Export-Address-Table/)
 Export Address Table (EAT) とは IAT と対になるテーブルで、ライブラリによって提供される関数の情報が保存されている:
 
-TODO: EAT figure
+<img src="./assets/img_0x0401.png" width="50%">
+(Source: resources.infosecinstitute.com)
 
 `AddressOfNames`、`AddressOfNameOrdinals` について、先頭から同じインデックスに存在する情報は、同じ関数のものを示している。よって、ある関数のアドレスを解決したい場合は、まず `AddressOfNames` の配列をたどってマッチする関数名を見つけ、そのインデックス X の位置にある `AddressOfNameOrdinals[X]` を取得する。この値は `AddressOfFunctions` のインデックスを示しているから、`AddressOfFunctions[AddressOfNameOrdinals[X]]` が関数のアドレスとなる。
 
