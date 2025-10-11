@@ -101,7 +101,12 @@ while (pd->OriginalFirstThunk) {
 ```
 
 ### Exercise 2.1
-ReadILT を開いて、ビルドしてみよう
+HelloWorld.exe 内の User32.dll の ILT は、どこに保存されているだろうか? PE ファイル内のオフセットである RA で答えよ。10進数、16進数のどちらでも構わない。
 
 ### Exercise 2.2
+TODO:
+ReadILT を開いて、ビルドしてみよう
+
+### Exercise 2.3
+TODO:
 System32 直下の .exe ファイルで、X を使用しているプログラムを探してみよう
