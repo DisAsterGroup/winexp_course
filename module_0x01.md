@@ -14,7 +14,7 @@ TODO: Visualize section loading
 この挙動は、特に疑似マルウェアを作成する際や、バイナリエクスプロイトにおいて必要な知識となる。
 
 ### Exercise 1.1
-HelloWorld.exe を PE-bear で開き、.data セクションの RVA、RawAddr を確認してみよう。HelloWorld.exe が 0x1234567800000000 に展開される際、.data セクションはどのアドレスに配置されるだろうか。
+HelloWorld.exe を PE-bear で開き、.data セクションの RVA、RawAddr を確認してみよう。HelloWorld.exe が 0x1234567800000000 に展開される際、.data セクションはどのアドレスに配置されるだろうか?
 
 ## Import Lookup Table (ILT)・Import Address Table (IAT)
 PE ファイルをロードする際、動的リンクされた DLL もロードされる。プログラムがライブラリの関数を使用している場合、この中の関数のアドレスも解決する必要がある。このとき、解決するために ILT に関数名などが保存され、IAT に解決後のアドレスが保存される。後者は ELF の GOT section に対応する。
