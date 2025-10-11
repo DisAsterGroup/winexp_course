@@ -10,9 +10,34 @@
 もちろん、ファイルが1つ、2つであれば手作業で解析ツールに投げて確認すればいいが、解析を自動化できれば、大規模で柔軟、かつ迅速な API の探索が可能になる。もちろん API といえば ILT で、ここで ILT をパースしようという話が出てくる。
 
 ### Import Directory Table (IDT) の取得
-ILT は、Import Directory Table (IDT) 内のポインタ `OriginalFirstThunk` から辿ることができ、IDT のアドレスは Import Directory の `VirtualAddress` に保存されている。
+ILT は、Import Directory Table (IDT) 内のポインタ `OriginalFirstThunk` から辿ることができ、IDT のアドレスは Import Directory の `VirtualAddress` に保存されている:
 
-TODO: IDT、DataDirectory visualization
+```c
+typedef struct _IMAGE_IMPORT_DESCRIPTOR {
+    union {
+        DWORD   Characteristics;            // 0 for terminating null import descriptor
+        DWORD   OriginalFirstThunk;         // RVA to original unbound IAT (PIMAGE_THUNK_DATA)
+    } DUMMYUNIONNAME;
+    DWORD   TimeDateStamp;                  // 0 if not bound,
+                                            // -1 if bound, and real date\time stamp
+                                            //     in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
+                                            // O.W. date/time stamp of DLL bound to (Old BIND)
+
+    DWORD   ForwarderChain;                 // -1 if no forwarders
+    DWORD   Name;
+    DWORD   FirstThunk;                     // RVA to IAT (if bound this IAT has actual addresses)
+} IMAGE_IMPORT_DESCRIPTOR;
+```
+
+```c
+typedef struct _IMAGE_DATA_DIRECTORY {
+    DWORD   VirtualAddress;
+    DWORD   Size;
+} IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
+```
+
+> [!NOTE]
+> 詳細は省いたが、Import Directory の RVA は Optional Header に保存されている。気になる人は PE-bear で確認してみてほしい。
 
 が、困ったことに IDT はリロケーション後のメモリ上のベースアドレスからの RVA で表現されており、リロケーション前の生の PE ファイルの先頭からのオフセットである RA ではない。本モジュールでは実行前の生の PE ファイルを静的に解析することを目的としており、このように、ファイルの先頭からのオフセットを計算したい場面がある。どうすればよいだろうか? 1つのやり方として、セクションヘッダには ロード後に展開されるアドレスの `VirtualAddress` (RVA) と、ファイル先頭からのオフセットである `PointerToRawData` (RA) というメンバーが含まれており、この対応を用いればアドレスをオフセットに変換することができる。
 
