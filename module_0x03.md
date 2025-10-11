@@ -19,13 +19,8 @@ openssh
 ws2_32.dll
 ws2_32.dll recv TCP conn
 
-## TEB
-(optional) Exception Handler abuse?
-
-TODO
-
 ## [`CreateProcess`](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessa)
-プロセスを生成する Win32 API で、マルウェア、エクスプロイトの文脈でとにかくよく見る。
+プロセスを生成する Win32 API で、マルウェア、エクスプロイトの文脈でよく見る。
 
 ## Process Hollowing
 
