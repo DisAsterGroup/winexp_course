@@ -19,17 +19,18 @@
 | RA   | Raw Address |
 
 ### Exercise 1.1
-HelloWorld.exe を PE-bear で開き、.data セクションの RVA、RawAddr を確認してみよう。HelloWorld.exe が 0x1234567800000000 に展開される際、.data セクションはどのアドレスに配置されるだろうか?
+HelloWorld.exe を PE-bear で開き、.data セクションの RVA を確認してみよう。HelloWorld.exe が 0x1234567800000000 に展開される際、.data セクションはどのアドレスに配置されるだろうか?
 
 ## Import Lookup Table (ILT)・Import Address Table (IAT)
 PE ファイルをロードする際、動的リンクされた DLL もロードされる。プログラムがライブラリの関数を使用している場合、この中の関数のアドレスも解決する必要がある。このとき、解決するために ILT に関数名などが保存され、IAT に解決後のアドレスが保存される。後者は ELF の GOT section に対応する。
 
-TODO: Maybe IDT?
+ILT と IAT は以下のような構造になっている。PE ローダは ILT の関数名からアドレスを解決し (例外もある)、ILT 内のインデックスと同じ位置にある IAT 内のエントリにアドレスを保存する。
 
-ILT と IAT は以下のような構造になっている。PE ローダは ILT の関数名からアドレスを解決し (例外もある)、ILT 内のオフセットと同じ位置にある IAT 内のエントリにアドレスを保存する。
+<img src="./assets/img_0x0102.png" width="50%">
 
-(TODO: Figure wanted)
+> [!CAUTION]
+> 上記の図は説明のために簡単にしているが、モジュール 0x02 で詳しく解説する
 
 ### Exercise 1.2
 TODO
-HelloWorld.exe 内の User32.dll の ILT は、どこに保存されているだろうか。PE ファイル内のオフセットを答えよ。10進数、16進数のどちらでも構わない。
+HelloWorld.exe 内の User32.dll の ILT は、どこに保存されているだろうか。PE ファイル内のオフセットである RA で答えよ。10進数、16進数のどちらでも構わない。
