@@ -15,11 +15,7 @@ WinDbg で確認すると、オフセット 0x02 の位置に `BeingDebugged` �
 オフセット 0x18 の位置には `Ldr` というメンバーがあり、ロードされたライブラリの情報が保存されている。
 
 #### Exercise 3.1
-BeingDebugged を何らかの方法で無効化して、接続先のドメインを特定してほしい
-
-openssh
-ws2_32.dll
-ws2_32.dll recv TCP conn
+Client.exe について、接続先のドメインを特定してほしい
 
 ### [`CreateProcess`](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessa)
 プロセスを生成する Win32 API で、マルウェア、エクスプロイトの文脈でよく使用される。
