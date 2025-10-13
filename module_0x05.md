@@ -58,10 +58,29 @@ WinDbg を用いると、IAT が書き換えられる様子を詳細に確認で
 <img src="./assets/img_0x0505.png" width="50%">
 
 ### IAT Hooking の検知
-Detection:
-Read IAT
-Check if each entry is within the range
-API がエクスポートされているライブラリのアドレスの範囲と比較することで、検知可能
+さて、攻撃者サイドからするとこのような監視を検知してバイパスしたい訳だが、防御サイドが上書きしたトランポリンのアドレスは、動的にヒープ領域に確保される。このアドレスはオリジナルの API が存在する DLL がロードされている範囲には含まれないはずだから、この事実を検知に使うことができる。DetectIATHooks はこの処理を実装したもので、以下のようにフックを検知することができる:
+
+```
+> HookIAT.exe "C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\DetectIATHooks.exe" VirtualAlloc
+Debugging C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\DetectIATHooks.exe
+PID: 11332
+---------- PRESS ENTER ----------
+
+Kernel32 base address: 0x7FFC1D530000
+Kernel32 size: 794624 bytes
+kernel32: [0x00007FFC1D530000, 0x00007FFC1D5F2000)
+Function: 0x7ffc1d548840
+PEB: 0x0000002643FA9000
+Image Base: 0x00007FF61D700000
+Victim size: 36864 bytes
+VirtualAlloc found!
+Now patching 0x00007FF61D703008
+Original address: 0x7ffc1d548840
+Function: 0x1bc07b30000
+The function 0x000001BC07B30000 is out of the kernel32 range!
+```
+
+TODO: DetectIATHooks implementation
 
 #### Exercise
 TODO: IAT forge - What if the address is changed during execution?
