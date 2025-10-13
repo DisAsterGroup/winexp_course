@@ -8,14 +8,47 @@
 
 <img src="./assets/img_0x0501.png" width="60%">
 
-このアドレスを書き換えて自前のコードを呼び出すことで、関数の呼び出し、渡される引数などを監視することができる:
+このアドレスを書き換えて自前のコード (トランポリン) を呼び出すことで、関数の呼び出し、渡される引数などを監視することができる:
 
 <img src="./assets/img_0x0502.png" width="60%">
 
-> [!TIP]
-> このようなコードはトランポリン (trampoline) と表現される。
+IAT hooking は以下のように実装できる:
 
-TODL: Add an experiment
+* プロセス内にトランポリンを確保
+* トランポリンにシェルコードをコピー
+* ILT からフックしたい API 名を探索
+* 対応する IAT 内エントリのアドレスを書き換える
+
+> [!NOTE]
+> フックしたいプロセスは別プロセスである場合が多く、別プロセスのプロセス空間内の読み書きを行う場合は `ReadProcessMemory`、`WriteProcessMemory` といった API を用いる。
+
+> [!NOTE]
+> PE ファイルのロードが終わった後、IAT は READONLY になる。書き換える前に `VirtualProtectEx` などで READWRITE に変更する必要がある。
+
+HookIAT.exe は IAT Hooking を実装したもので、渡された PE ファイルから子プロセスを生成し、IAT にシェルコードをフックする:
+
+```
+> HookIAT.exe <PE ファイルのフルパス> <API 名>
+```
+
+例えば、victim.exe の `VirtualAlloc` にフックすると、トランポリンが `MessageBoxA` を実行する:
+
+```
+> HookIAT.exe "C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\victim.exe" VirtualAlloc
+PID: 4652
+---------- PRESS ENTER ----------
+
+PEB: 0x000000C0472F6000
+Image Base: 0x00007FF781A20000
+Victim size: 28672 bytes
+VirtualAlloc found!
+Now patching 0x00007FF781A22000
+Original address: 0x7ffc1d548840
+
+```
+
+<img src="./assets/img_0x0503.png" width="30%">
+
 bp victim!_imp_VirtualAlloc
 
 ### IAT Hooking の検知
