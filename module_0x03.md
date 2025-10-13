@@ -6,7 +6,7 @@
 ### [PEB](https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/exploring-process-environment-block)
 PEB は Windows に特有の構造体で、プロセスに関する情報を含んでいる。各プロセスのメモリ空間上に作成され、x64 環境では `gs:[0x60]` のアドレスに保存されている。WinDbg では、実行後に `dt _peb @$peb` と入力すると、PEB をダンプできる:
 
-<img src="./assets/img_0x0301.png" width="50%">
+<img src="./assets/img_0x0301.png" width="500">
 
 オフセット 0x10 の位置には `ImageBaseAddress` があり、プロセスのメモリ上のベースアドレスが保存される。
 

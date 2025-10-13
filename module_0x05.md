@@ -6,11 +6,11 @@
 
 通常、IAT には以下のように関数のアドレスが格納されている:
 
-<img src="./assets/img_0x0501.png" width="60%">
+<img src="./assets/img_0x0501.png" width="600">
 
 このアドレスを書き換えて自前のコード (トランポリン) を呼び出すことで、関数の呼び出し、渡される引数などを監視することができる:
 
-<img src="./assets/img_0x0502.png" width="60%">
+<img src="./assets/img_0x0502.png" width="600">
 
 IAT hooking は以下のように実装できる:
 
@@ -47,15 +47,15 @@ Original address: 0x7ffc1d548840
 
 ```
 
-<img src="./assets/img_0x0503.png" width="30%">
+<img src="./assets/img_0x0503.png" width="300">
 
 WinDbg を用いると、IAT が書き換えられる様子を詳細に確認できる。まずは上記の HookIAT.exe と同じコマンドを実行し、表示される PID を持つプロセスにアタッチする。フック前の段階では、IAT のエントリには `KERNEL32!VirtualAllocStub` が保存されていることが分かる:
 
-<img src="./assets/img_0x0504.png" width="50%">
+<img src="./assets/img_0x0504.png" width="600">
 
 次に `VirtualAlloc` が呼ばれる直前にブレークポイントを設定して再開、HookIAT.exe 側でエンターを押し、フックする。ブレークしたところで IAT を確認してみると、トランポリンの処理に書き換えられていることが分かる:
 
-<img src="./assets/img_0x0505.png" width="50%">
+<img src="./assets/img_0x0505.png" width="600">
 
 ### IAT Hooking の検知
 さて、攻撃者サイドからするとこのような監視を検知してバイパスしたい訳だが、防御サイドが上書きしたトランポリンのアドレスは、動的にヒープ領域に確保される。このアドレスはオリジナルの API が存在する DLL がロードされている範囲には含まれないはずだから、この事実を検知に使うことができる。DetectIATHooks はこの処理を実装したもので、以下のようにフックを検知することができる:

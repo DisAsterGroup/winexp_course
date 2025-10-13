@@ -6,7 +6,7 @@
 
 例えば、セクションのロードは代表的なリロケーションと言える。ベースアドレスにセクションヘッダが指定する `VirtualAddress` (RVA) を加えた箇所 VMA に、セクションが配置される:
 
-<img src="./assets/img_0x0101.png" width="50%">
+<img src="./assets/img_0x0101.png" width="500">
 
 その他にも、ASLR (Address Space Layout Randomization) が有効になっている場合は、実行毎にベースアドレスが変化する。この場合も、PE ファイル内のアドレスを正しく計算し直して、適切な値に書き換えてやる必要がある。
 
@@ -26,7 +26,7 @@ PE ファイルをロードする際、動的リンクされた DLL もロード
 
 ILT と IAT は以下のような構造になっている。PE ローダは ILT の関数名からアドレスを解決し (例外もある)、ILT 内のインデックスと同じ位置にある IAT 内のエントリにアドレスを保存する。
 
-<img src="./assets/img_0x0102.png" width="50%">
+<img src="./assets/img_0x0102.png" width="500">
 
 > [!CAUTION]
 > 上記の図は説明のために簡単にしているが、モジュール 0x02 で詳しく解説する
