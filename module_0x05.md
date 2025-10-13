@@ -49,7 +49,13 @@ Original address: 0x7ffc1d548840
 
 <img src="./assets/img_0x0503.png" width="30%">
 
-bp victim!_imp_VirtualAlloc
+WinDbg を用いると、IAT が書き換えられる様子を詳細に確認できる。まずは上記の HookIAT.exe と同じコマンドを実行し、表示される PID を持つプロセスにアタッチする。フック前の段階では、IAT のエントリには `KERNEL32!VirtualAllocStub` が保存されていることが分かる:
+
+<img src="./assets/img_0x0504.png" width="50%">
+
+次に `VirtualAlloc` が呼ばれる直前にブレークポイントを設定して再開、HookIAT.exe 側でエンターを押し、フックする。ブレークしたところで IAT を確認してみると、トランポリンの処理に書き換えられていることが分かる:
+
+<img src="./assets/img_0x0505.png" width="50%">
 
 ### IAT Hooking の検知
 Detection:
