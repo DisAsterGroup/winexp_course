@@ -15,3 +15,8 @@ In this case as well maybe we need to resolve the address of LoadLibrary inside 
 
 ## Reflective DLL Injection
 TODO
+
+### Last
+プロジェクトのヘッダファイルなど、貴重な情報源
+
+* angr
