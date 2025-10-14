@@ -59,9 +59,15 @@ typedef struct _IMAGE_SECTION_HEADER {
 } IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
 ```
 
-例えば、HelloWorld.exe の .data セクションを確認してみると、ファイルの先頭からオフセット 0x18A00 の位置にある内容が、メモリ上で 0x1A000 の位置に展開されることが分かる。このときの差分は 0x1A000-0x18A00 = 0x1600 となる。
+この対応から、ファイルの先頭 (base) からのオフセット (idt_ra) 位置にあるデータは、以下のように表わされる:
 
-この処理に対応するコードは以下の通り:
+```
+base + idt_ra
+= base + idt_rva - (sec_rva - sec_ra)
+= base + idt_rva -  idiff
+```
+
+よって、差分である idiff を計算しておくと楽になる。この処理に対応するコードは以下の通り:
 
 ```c
 // PE ファイルがメモリに展開されたときの、IDT のベースアドレスからのオフセット RVA
@@ -77,13 +83,7 @@ if (not pHeader) {
 LONG idiff = pHeader->VirtualAddress - pHeader->PointerToRawData;
 ```
 
-ここで、ファイルの先頭 (base) からのオフセット (idt_ra) 位置にあるデータは、以下のように表わされる:
-
-```
-base + idt_ra
-= base + idt_rva - (sec_rva - sec_ra)
-= base + idt_rva -  idiff
-```
+最後に、差分を使って IDT のポインタを取得する:
 
 ```c
 PIMAGE_IMPORT_DESCRIPTOR GetImportDirectoryTable(LPBYTE lpPe, PIMAGE_OPTIONAL_HEADER64 pOptHeader, LONG idiff = 0) {
@@ -91,6 +91,10 @@ PIMAGE_IMPORT_DESCRIPTOR GetImportDirectoryTable(LPBYTE lpPe, PIMAGE_OPTIONAL_HE
     return pIDT;
 }
 ```
+
+例えば、[HelloWorld.exe](./HelloWorld.exe) の .data セクションを確認してみると、ファイルの先頭からの RA 0x18A00 の位置にある内容が、メモリ上で 0x1A000 の RVA に展開されることが分かる。このときの差分 (idiff) は 0x1A000-0x18A00 = 0x1600 となる。
+
+<img src="./assets/img_0x0201.png" width="300">
 
 ### ILT のパース
 IDT は IMAGE_IMPORT_DESCRIPTOR の配列になっており、この構造体は DLL の情報を含む。`OriginalFirstThunk` は ILT への RVA を示しており、差分を考慮しながら各メンバーの値を読み取っていけばいい。
@@ -126,10 +130,10 @@ while (pd->OriginalFirstThunk) {
 ```
 
 ### Exercise 2.1
-HelloWorld.exe 内の User32.dll の ILT は、どこに保存されているだろうか? PE ファイル内のオフセットである RA で答えよ。10進数、16進数のどちらでも構わない。
+[HelloWorld.exe](./HelloWorld.exe) 内の User32.dll の ILT は、どこに保存されているだろうか? PE ファイルの先頭からのオフセットである RA で答えよ。10進数、16進数のどちらでも構わない。
 
-### Exercise 2.2 (フラグなし)
-ReadILT を開いて、ビルドしてみよう
+### Exercise 2.2
+[ReadILT](./ReadILT/) を開いてビルドし、`File > Open a PE file` から [HelloWorld.exe](./HelloWorld.exe) を開いてみよう。一番最後にはどの API 名が表示されているだろうか?
 
 ### Exercise 2.3
 C:\Windows\System32 直下に存在する .exe ファイルで、`ReplaceFileW` を使用しているアプリケーションを探してみよう。.exe ファイルの名前がフラグ。
