@@ -1,7 +1,7 @@
 ## Zydis による静的解析
-モジュール 0x00 で言及したように、リバースエンジニアリングにおいてはコードをできるだけ読まないことが重要で、一度ある程度解析を自動化する仕組みを用意しておくと重宝する。例えば、[Zydis](https://github.com/zyantific/zydis) のようなディスアセンブル用のライブラリを使えば、事前に用意したパターンに合致するようなコードを容易に見つけることができる。このモジュールでは、Zydis を用いた静的解析について解説する。
+モジュール 0x00 で言及したように、リバースエンジニアリングにおいてはコードをできるだけ読まないことが重要で、一度ある程度解析を自動化する仕組みを用意しておくと重宝する。例えば、[Zydis](https://github.com/zyantific/zydis) のようなディスアセンブル用のライブラリを使えば、事前に用意したパターンに合致するようなコードを容易に見つけることができる。このモジュールでは、Zydis を用いた静的解析のアイディアを紹介する。
 
-### Zydis 101
+### Zydis を用いた .text セクションのディスアセンブル
 Zydis を用いた自動化の一例として、[ZydisLab](./ZydisLab/) を用意した。この例では、PE ファイルのフルパスを引数に取り、.text セクション内のコードを全てディスアセンブルする。[pe.h](./include/pe.h) 内の関数を使えば、以下のコードで .text セクションを読み取ることができる:
 
 ```cpp
@@ -55,7 +55,7 @@ while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, lpText + offset, length - o
 ```
 
 ### Exercise 6.1 (フラグなし)
-[ZydisLab](./ZydisLab/) をビルドして、victim.exe をディスアセンブルしてみよう。以下はコマンド例:
+[ZydisLab](./ZydisLab/) をビルドして、[victim.exe](./victim.exe) の .text セクションをディスアセンブルしてみよう。以下はコマンド例:
 
 ```
 > ZydisLab.exe C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\victim.exe
