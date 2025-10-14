@@ -3,10 +3,10 @@
 
 今までのモジュールで見てきたように、PE ファイルをメモリ上にロードする際には、リロケーション、DLL のインポート、API のアドレス解決といった処理が行われる。例えば、`MessageBoxA` という API を呼び出したいとき、まずはエクスポート元の User32.dll という DLL をロードして、次にこの API のアドレスを解決する必要がある。マルウェアの難読化、バイナリエクスプロイトの際には、こういったプロセスの文脈に依存しないコードが求められる場合があり、このようなコードはシェルコードと呼ばれる。
 
-シェルコードはこういった API の使用を避けたり、自分で DLL をロードするような処理を実装している。初見殺しのコードになることが多く、このモジュールで紹介するような基本的なテクニックを知っておくと、解析がやりやすくなる。
+シェルコードはこういった API の使用を避けたり、自分で DLL をロードするような処理を実装している。初見殺しのコードになることが多く、このモジュールで紹介するような基本的なテクニックを知っておくと、解析がやりやすくなる。このモジュールでは、実際のシェルコード [shellcode_MessageBoxA.cpp](./shellcode_MessageBoxA.cpp) に基づいて解説する。
 
 ### kernel32
-Kernel32.dll は最も基本的なライブラリで、ほとんどの実行ファイルにリンクされている。このライブラリは `LoadLibraryA` という API を提供しており、別のライブラリをロードして、任意の関数を呼び出す際に使用される。前述の理由で、このライブラリはほとんどのプロセスのメモリ空間で見つけることができるため、攻撃者のシェルコードでは、まずこのライブラリのベースアドレスを取得している:
+Kernel32.dll は最も基本的なライブラリで、ほとんどの実行ファイルにリンクされている。このライブラリは `LoadLibraryA` という API を提供しており、別のライブラリをロードして、任意の関数を呼び出す際に使用される。前述の理由で、このライブラリはほとんどのプロセスのメモリ空間で見つけることができるため、攻撃者のシェルコードでは、まずこのライブラリのベースアドレスを取得することが多い:
 
 ```asm
 "find_kernel32:"
@@ -25,12 +25,12 @@ Kernel32.dll は最も基本的なライブラリで、ほとんどの実行フ�
 
 上記のコードでは、`PEB->Ldr.InLoadOrderModuleList` でロードされているライブラリ情報の双方向リストを取得している。その後、モジュール名の12バイト目がヌルかどうかで Kernel32.dll を判別する。このライブラリではなかった場合は、`flink` (forward link) をたどって次のモジュール情報を見る。最終的に Kernel32.dll のベースアドレスが rbx に保存される。
 
-TODO: Add an experiment
+<img src="./assets/img_0x0401.png" width="600">
 
 ### [Export Address Table (EAT)](https://ferreirasc.github.io/PE-Export-Address-Table/)
 Export Address Table (EAT) とは IAT と対になるテーブルで、ライブラリによって提供される関数の情報が保存されている:
 
-<img src="./assets/img_0x0401.png" width="600">
+<img src="./assets/img_0x0402.png" width="600">
 (Source: resources.infosecinstitute.com)
 
 `AddressOfNames`、`AddressOfNameOrdinals` について、先頭から同じインデックスに存在する情報は、同じ関数のものを示している。よって、ある関数のアドレスを解決したい場合は、まず `AddressOfNames` の配列をたどってマッチする関数名を見つけ、そのインデックス X の位置にある `AddressOfNameOrdinals[X]` を取得する。この値は `AddressOfFunctions` のインデックスを示しているから、`AddressOfFunctions[AddressOfNameOrdinals[X]]` が関数のアドレスとなる。
@@ -105,13 +105,8 @@ r10d には、欲しい関数名のハッシュ値が事前に計算されて渡
 > [!NOTE]
 > `AddressOfNameOrdinals` は2バイトの配列で、`AddressOfFunctions` は4バイトの配列
 
-### シェルコードの解析
-TODO: Add Binary Ninja analysis
-呼ばれる際はレジスタを確認
-
-
 ### ヌルバイトの除去
 このモジュールの例では考慮していないが、アプリケーションの入力などに対してバイナリエクスプロイトを行う場合は、命令を工夫してヌルバイトを含まないシェルコードを作成する必要がある。これは、ヌルバイトが入力の終端と解釈され、その後のコードが無視されるのを防ぐため。
 
 ### Exercise 4.1
-ExecShellcode.exe 中のシェルコードは、`MessageBoxA` を実行する。このシェルコードの処理で `CreateProcessA` のアドレスを解決したい場合、関数名のハッシュ値はどうなるだろうか?
+[ExecShellcode.exe](./ExecShellcode.exe) 中のシェルコードは、`MessageBoxA` を実行する。このシェルコードの処理で `CreateProcessA` のアドレスを解決したい場合、関数名のハッシュ値はどうなるだろうか?

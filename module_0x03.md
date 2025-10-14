@@ -21,7 +21,4 @@ Client.exe について、何らかの方法で `BeingDebugged` のチェック�
 プロセスを生成する Win32 API で、マルウェア、エクスプロイトの文脈でよく使用される。
 
 ### Process Hollowing
-
 TODO
-Windows.h
-ターゲットの実行ファイル
