@@ -25,13 +25,13 @@ IAT hooking は以下のように実装できる:
 > [!NOTE]
 > PE ファイルのロードが終わった後、IAT は READONLY になる。書き換える前に `VirtualProtectEx` などで READWRITE に変更する必要がある。
 
-HookIAT.exe は IAT Hooking を実装したもので、渡された PE ファイルから子プロセスを生成し、IAT にシェルコードをフックする:
+[HookIAT.exe](./HookIAT.exe) は IAT Hooking を実装したもので、渡された PE ファイルから子プロセスを生成し、IAT にシェルコードをフックする:
 
 ```
 > HookIAT.exe <PE ファイルのフルパス> <API 名>
 ```
 
-例えば、victim.exe の `VirtualAlloc` にフックすると、トランポリンが `MessageBoxA` を実行する:
+例えば、[victim.exe](./victim.exe) の `VirtualAlloc` にフックすると、トランポリンが `MessageBoxA` を実行する:
 
 ```
 > HookIAT.exe "C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\victim.exe" VirtualAlloc
@@ -58,7 +58,9 @@ WinDbg を用いると、IAT が書き換えられる様子を詳細に確認で
 <img src="./assets/img_0x0505.png" width="600">
 
 ### IAT Hooking の検知
-さて、攻撃者サイドからするとこのような監視を検知してバイパスしたい訳だが、防御サイドが上書きしたトランポリンのアドレスは、動的にヒープ領域に確保される。このアドレスはオリジナルの API が存在する DLL がロードされている範囲には含まれないはずだから、この事実を検知に使うことができる。DetectIATHooks はこの処理を実装したもので、以下のようにフックを検知することができる:
+さて、攻撃者サイドからするとこのような監視を検知してバイパスしたい訳だが、防御サイドが上書きしたトランポリンのアドレスは、動的にヒープ領域に確保される。このアドレスはオリジナルの API が存在する DLL がロードされている範囲には含まれないはずだから、この事実を検知に使うことができる。[DetectIATHooks](./DetectIATHooks) はこの処理を実装したもので、kernel32.dll のベースアドレスと上限のアドレスを取得し、`VirtualAlloc` の IAT に保存されているアドレスがこの範囲に含まれるかチェックしている。
+
+以下のようにフックを検知することができる:
 
 ```
 > HookIAT.exe "C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\DetectIATHooks.exe" VirtualAlloc
@@ -80,14 +82,12 @@ Function: 0x1bc07b30000
 The function 0x000001BC07B30000 is out of the kernel32 range!
 ```
 
-TODO: DetectIATHooks implementation
+> [!NOTE]
+> DetectIATHooks は Release でビルドすること。Debug ビルドは異なるコードを吐く。
 
-#### Exercise
-TODO: IAT forge - What if the address is changed during execution?
-解析者への嫌がらせをするため、いずれかの関数の IAT のエントリを書き換えてある
-どの関数がいじられているのか、特定してほしい
+#### Exercise 5.1
+[ForgeIAT.exe](./ForgeIAT.exe) は解析者への嫌がらせをするため、いずれかの関数の IAT のエントリを書き換えてある。
+どの関数がいじられているのか、特定してほしい。関数名がフラグ。
 
-### Microsoft Detours
-Windows API Hooking
-
-関数の命令にパッチする
+### Windows API Hooking
+API の命令そのものにパッチする方法は、API Hooking と呼ばれる。Microsoft Detours などのプロジェクトは、この手法で API の呼び出しを追跡している。
