@@ -139,3 +139,5 @@ while (pd->OriginalFirstThunk) {
 
 ### Exercise 2.3
 C:\Windows\System32 直下に存在する .exe ファイルで、`ReplaceFileW` を使用しているアプリケーションを探してみよう。.exe ファイルの名前がフラグ。
+
+テンプレートとして [ex_0x23](./ex_0x23) を用意してある。
