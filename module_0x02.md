@@ -39,7 +39,7 @@ typedef struct _IMAGE_DATA_DIRECTORY {
 > [!NOTE]
 > 詳細は省いたが、Import Directory の RVA は Optional Header に保存されている。気になる人は PE-bear で確認してみてほしい。
 
-が、困ったことに IDT はリロケーション後のメモリ上のベースアドレスからの RVA で表現されており、リロケーション前の生の PE ファイルの先頭からのオフセットである RA ではない。本モジュールでは実行前の生の PE ファイルを静的に解析することを目的としており、このように、ファイルの先頭からのオフセットを計算したい場面がある。どうすればよいだろうか? 1つのやり方として、セクションヘッダには ロード後に展開されるアドレスの `VirtualAddress` (RVA) と、ファイル先頭からのオフセットである `PointerToRawData` (RA) というメンバーが含まれており、この対応を用いればアドレスをオフセットに変換することができる。
+が、困ったことに Import Directory の `VirtualAddress` はリロケーション後のメモリ上のベースアドレスからの RVA で表現されており、リロケーション前の生の PE ファイルの先頭からのオフセットである RA ではない。本モジュールでは実行前の生の PE ファイルを静的に解析することを目的としており、このように、RA を計算したい場面がある。どうすればよいだろうか? 1つのやり方として、セクションヘッダには ロード後に展開されるアドレスの `VirtualAddress` (RVA) と、ファイル先頭からのオフセットである `PointerToRawData` (RA) というメンバーが含まれており、この対応を用いれば RVA を RA に変換することができる。
 
 ```c
 typedef struct _IMAGE_SECTION_HEADER {
@@ -66,6 +66,8 @@ base + idt_ra
 = base + idt_rva - (sec_rva - sec_ra)
 = base + idt_rva -  idiff
 ```
+
+<img src="./assets/img_0x0201.png" width="500">
 
 よって、差分である idiff を計算しておくと楽になる。この処理に対応するコードは以下の通り:
 
@@ -94,7 +96,7 @@ PIMAGE_IMPORT_DESCRIPTOR GetImportDirectoryTable(LPBYTE lpPe, PIMAGE_OPTIONAL_HE
 
 例えば、[HelloWorld.exe](./HelloWorld.exe) の .data セクションを確認してみると、ファイルの先頭からの RA 0x18A00 の位置にある内容が、メモリ上で 0x1A000 の RVA に展開されることが分かる。このときの差分 (idiff) は 0x1A000-0x18A00 = 0x1600 となる。
 
-<img src="./assets/img_0x0201.png" width="300">
+<img src="./assets/img_0x0202.png" width="300">
 
 ### ILT のパース
 IDT は IMAGE_IMPORT_DESCRIPTOR の配列になっており、この構造体は DLL の情報を含む。`OriginalFirstThunk` は ILT への RVA を示しており、差分を考慮しながら各メンバーの値を読み取っていけばいい。
