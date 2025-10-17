@@ -4,7 +4,7 @@
 ### IAT Hooking
 アンチウイルス製品や EDR は、特に IAT Hooking というテクニックを用いてマルウェアが使用する API を監視している。
 
-通常、IAT には以下のように関数のアドレスが格納されている:
+通常、IAT には以下のように、関数に対応するアドレスがそのまま格納されている:
 
 <img src="./assets/img_0x0501.png" width="600">
 
@@ -12,12 +12,12 @@
 
 <img src="./assets/img_0x0502.png" width="600">
 
-IAT hooking は以下のように実装できる:
+IAT hooking は以下のように実装される:
 
 * プロセス内にトランポリンを確保
 * トランポリンにシェルコードをコピー
 * ILT からフックしたい API 名を探索
-* 対応する IAT 内エントリのアドレスを書き換える
+* IAT 内にある関数エントリのアドレスを書き換える
 
 > [!NOTE]
 > フックしたいプロセスは別プロセスである場合が多く、別プロセスのプロセス空間内の読み書きを行う場合は `ReadProcessMemory`、`WriteProcessMemory` といった API を用いる。
@@ -58,7 +58,7 @@ WinDbg を用いると、IAT が書き換えられる様子を詳細に確認で
 <img src="./assets/img_0x0505.png" width="600">
 
 ### IAT Hooking の検知
-さて、攻撃者サイドからするとこのような監視を検知してバイパスしたい訳だが、防御サイドが上書きしたトランポリンのアドレスは、動的にヒープ領域に確保される。このアドレスはオリジナルの API が存在する DLL がロードされている範囲には含まれないはずだから、この事実を検知に使うことができる。[DetectIATHooks](./DetectIATHooks) はこの処理を実装したもので、kernel32.dll のベースアドレスと上限のアドレスを取得し、`VirtualAlloc` の IAT に保存されているアドレスがこの範囲に含まれるかチェックしている。
+さて、攻撃者サイドからするとこのような監視を検知してバイパスしたい訳だが、防御サイドが上書きしたトランポリンのアドレスは、動的にヒープ領域に確保される。このアドレスはオリジナルの API が存在する DLL のアドレス範囲には含まれないはずだから、この事実を検知に使うことができる。[DetectIATHooks](./DetectIATHooks) はこの処理を実装したもので、kernel32.dll のベースアドレスと上限のアドレスを取得し、`VirtualAlloc` の IAT に保存されているアドレスがこの範囲に含まれるかチェックしている。
 
 以下のようにフックを検知することができる:
 
@@ -90,4 +90,6 @@ The function 0x000001BC07B30000 is out of the kernel32 range!
 どの関数がいじられているのか、特定してほしい。関数名がフラグ。
 
 ### Windows API Hooking
-API の命令そのものにパッチする方法は、API Hooking と呼ばれる。Microsoft Detours などのプロジェクトは、この手法で API の呼び出しを追跡している。
+API の命令そのものにパッチする方法は、API Hooking と呼ばれる。[Microsoft Detours](https://github.com/microsoft/Detours) などのプロジェクトは、この手法で API の呼び出しを追跡している。
+
+* [パッチ箇所](https://github.com/microsoft/Detours/blob/9764cebcb1a75940e68fa83d6730ffaf0f669401/src/detours.cpp#L1831-L1832)
