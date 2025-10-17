@@ -59,7 +59,7 @@ while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, lpText + offset, length - o
 
 ```
 > set "PATH=%PATH%;C:\Users\omega\Desktop\winexp_course\lib"
-> ZydisLab.exe C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\victim.exe
+> ZydisLab.exe C:\Users\omega\Desktop\winexp_course\victim.exe
 ```
 
 > [!CAUTION]

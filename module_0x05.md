@@ -34,7 +34,7 @@ IAT hooking は以下のように実装される:
 例えば、[victim.exe](./victim.exe) の `VirtualAlloc` にフックすると、トランポリンが `MessageBoxA` を実行する:
 
 ```
-> HookIAT.exe "C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\victim.exe" VirtualAlloc
+> HookIAT.exe "C:\Users\omega\Desktop\winexp_course\victim.exe" VirtualAlloc
 PID: 4652
 ---------- PRESS ENTER ----------
 
@@ -63,8 +63,8 @@ WinDbg を用いると、IAT が書き換えられる様子を詳細に確認で
 以下のようにフックを検知することができる:
 
 ```
-> HookIAT.exe "C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\DetectIATHooks.exe" VirtualAlloc
-Debugging C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\DetectIATHooks.exe
+> HookIAT.exe "C:\Users\omega\Desktop\winexp_course\DetectIATHooks\x64\Release\DetectIATHooks.exe" VirtualAlloc
+Debugging C:\Users\omega\Desktop\winexp_course\DetectIATHooks\x64\Release\DetectIATHooks.exe
 PID: 11332
 ---------- PRESS ENTER ----------
 
