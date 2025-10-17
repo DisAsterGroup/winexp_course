@@ -58,8 +58,12 @@ while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, lpText + offset, length - o
 [ZydisLab](./ZydisLab/) をビルドして、[victim.exe](./victim.exe) の .text セクションをディスアセンブルしてみよう。以下はコマンド例:
 
 ```
+> set "PATH=%PATH%;C:\Users\omega\Desktop\winexp_course\lib"
 > ZydisLab.exe C:\Users\omega\Desktop\windows_binary_experiments\course\IATHooking\x64\Release\victim.exe
 ```
+
+> [!CAUTION]
+> `set` コマンドで一時的に DLL のパスを通す
 
 ### Exercise 6.2
 [func_10000_msvc.exe](./func_10000_msvc.exe) は10000個の関数をランダムに実行し続ける。この中の1つの関数は、PEB を取得することが分かっている。この関数のアドレスを特定し、16進数で回答してほしい。
