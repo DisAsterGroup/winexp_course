@@ -1,10 +1,10 @@
 ## Module 0x03: プロセス
 このモジュールでは、Windows 環境のプロセスについて学習する。
 
-プロセスとは実行される処理の単位のことで、OS の基本的な概念の1つである。これまでのモジュールで見てきたように、PE ファイルは実行時にメモリに展開され、プロセスとして OS によって管理される。
+プロセスとは実行される処理の単位のことで、OS の基本的な概念の1つである。これまでのモジュールで見てきたように、PE ファイルは実行時に仮想メモリ上に展開され、プロセスとして OS によって管理される。
 
-### [PEB](https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/exploring-process-environment-block)
-PEB は Windows に特有の構造体で、プロセスに関する情報を含んでいる。各プロセスのメモリ空間上に作成され、x64 環境では `gs:[0x60]` のアドレスに保存されている。WinDbg では、実行後に `dt _peb @$peb` と入力すると、PEB をダンプできる:
+### [Process Environment Block (PEB)](https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/exploring-process-environment-block)
+Process Environment Block (PEB) は Windows に特有の構造体で、プロセスに関する情報を含んでいる。各プロセスのメモリ空間上に作成され、x64 環境では `gs:[0x60]` のアドレスに保存されている。WinDbg では、実行後に `dt _peb @$peb` と入力すると、PEB をダンプできる:
 
 <img src="./assets/img_0x0301.png" width="500">
 
