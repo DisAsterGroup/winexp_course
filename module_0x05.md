@@ -89,6 +89,8 @@ The function 0x000001BC07B30000 is out of the kernel32 range!
 [ForgeIAT.exe](./ForgeIAT.exe) は解析者への嫌がらせをするため、いずれかの関数の IAT のエントリを書き換えてある。
 どの関数がいじられているのか、特定してほしい。関数名がフラグ。
 
+テンプレとして [ex_0x51](./ex_0x51) を用意してあるが、使用しなくても構わない。また、場合によっては ForgeIAT.exe はすぐに実行が終了するため、パッチを当てて int3 を実行させる必要がある。
+
 ### Windows API Hooking
 API の命令そのものにパッチする方法は、API Hooking と呼ばれる。[Microsoft Detours](https://github.com/microsoft/Detours) などのプロジェクトは、この手法で API の呼び出しを追跡している。
 

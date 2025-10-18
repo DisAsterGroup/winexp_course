@@ -33,6 +33,31 @@ LPBYTE OpenReadFile(LPCWSTR lpFileName, PDWORD pdwFileSize) {
     return (LPBYTE)lpFileBuf;
 }
 
+LPBYTE OpenReadFileA(LPCSTR lpFileName, PDWORD pdwFileSize) {
+    HANDLE hFile = CreateFileA(lpFileName, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        std::cerr << "Error opening a file" << std::endl;
+        ExitProcess(-1);
+    }
+
+    *pdwFileSize = GetFileSize(hFile, nullptr);
+    if (*pdwFileSize == INVALID_FILE_SIZE) {
+        std::cerr << "Failed to get file size" << std::endl;
+        CloseHandle(hFile);
+        ExitProcess(-1);
+    }
+
+    LPVOID lpFileBuf = VirtualAlloc(NULL, *pdwFileSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+    if (ReadFile(hFile, lpFileBuf, *pdwFileSize, NULL, NULL) == NULL) {
+        std::cerr << "Failed to read a file" << std::endl;
+        CloseHandle(hFile);
+        ExitProcess(-1);
+    }
+
+    return (LPBYTE)lpFileBuf;
+}
+
 PPEB GetLocalPeb()
 {
     HANDLE hProcess = GetCurrentProcess();
@@ -297,6 +322,57 @@ ReadImportAddressTable(
     return mIat;
 }
 
+std::map</* DLL name */ std::string, std::map</* name */ std::string, /* address */ ULONGLONG>>
+ReadRemoteImportAddressTable(
+    HANDLE hProcess,
+    LPBYTE lpImage,
+    LPBYTE lpBuf)
+{
+    PIMAGE_OPTIONAL_HEADER64 pOptHeader;
+    GetPeHeaders(lpBuf, 0, 0, 0, &pOptHeader, 0);
+
+    PIMAGE_IMPORT_DESCRIPTOR pIdt = GetImportDirectoryTable(lpBuf, pOptHeader);
+
+    // Result
+    std::map</* DLL name */ std::string, std::map</* name */ std::string, /* address */ ULONGLONG>> table;
+
+    // Iterate through DLLs
+    PIMAGE_IMPORT_DESCRIPTOR pd = pIdt;
+    while (pd->OriginalFirstThunk) {
+        LPSTR szDllName = (LPSTR)(lpBuf + pd->Name);
+
+        PIMAGE_THUNK_DATA64 pIlt = (PIMAGE_THUNK_DATA64)(lpBuf + pd->OriginalFirstThunk);
+        PIMAGE_THUNK_DATA64 pIat = (PIMAGE_THUNK_DATA64)(lpBuf + pd->FirstThunk);
+
+        // Iterate through functions
+        while (pIlt->u1.AddressOfData and pIat->u1.AddressOfData) {
+            ULONGLONG lpFunctionAddr = pIat->u1.AddressOfData;
+
+            LPSTR szFunctionName;
+
+            // Ordinal
+            if (pIlt->u1.Ordinal >> 63 == 1) {
+                DWORD dwOrdinal = pIlt->u1.Ordinal & 0xffff;
+                szFunctionName = (LPSTR)VirtualAlloc(NULL, 10, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                strcpy_s(szFunctionName, 8, "Ordinal_");
+                sprintf_s(szFunctionName, 10, "%u", dwOrdinal);
+            }
+            else {
+                szFunctionName = ((PIMAGE_IMPORT_BY_NAME)(lpBuf + pIlt->u1.AddressOfData))->Name;
+            }
+
+            table[szDllName][szFunctionName] = lpFunctionAddr;
+
+            pIlt++;
+            pIat++;
+        }
+
+        pd++;
+    }
+
+    return table;
+}
+
 // https://0xrick.github.io/win-internals/pe6/
 std::map</* DLL name */ std::string, std::map</* name */ std::string, /* address */ ULONGLONG>>
 ReadImportLookupTableFromRaw(
@@ -436,6 +512,77 @@ VOID PatchRemoteIatEntryByName(
                 if (WriteProcessMemory(hProcess, (LPBYTE)pImageIat, &lpTramp, 8, NULL) == 0) {
                     std::cout << "WriteProcessMemory failed" << std::endl;
                 }
+
+                return;
+            }
+
+            pIlt++;
+            pIat++;
+        }
+
+        pd++;
+    }
+}
+
+VOID PatchLocalIatEntryByHash(
+    LPBYTE lpImage,
+    DWORD  dwTargetHash,
+    LPBYTE lpTramp)
+{
+    PIMAGE_OPTIONAL_HEADER64 pOptHeader;
+    GetPeHeaders(lpImage, 0, 0, 0, &pOptHeader, 0);
+
+    PIMAGE_IMPORT_DESCRIPTOR pIdt = GetImportDirectoryTable(lpImage, pOptHeader);
+
+    // Iterate through DLLs
+    PIMAGE_IMPORT_DESCRIPTOR pd = pIdt;
+    while (pd->OriginalFirstThunk) {
+        LPSTR szDllName = (LPSTR)(lpImage + pd->Name);
+
+        PIMAGE_THUNK_DATA64 pIlt = (PIMAGE_THUNK_DATA64)(lpImage + pd->OriginalFirstThunk);
+        PIMAGE_THUNK_DATA64 pIat = (PIMAGE_THUNK_DATA64)(lpImage + pd->FirstThunk);
+
+        // Iterate through functions
+        while (pIlt->u1.AddressOfData and pIat->u1.AddressOfData) {
+            ULONGLONG lpFunctionAddr = pIat->u1.AddressOfData;
+
+            LPSTR szFunctionName;
+
+            // Ordinal
+            if (pIlt->u1.Ordinal >> 63 == 1) {
+                DWORD dwOrdinal = pIlt->u1.Ordinal & 0xffff;
+                szFunctionName = (LPSTR)VirtualAlloc(NULL, 10, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                strcpy_s(szFunctionName, 8, "Ordinal_");
+                sprintf_s(szFunctionName, 10, "%u", dwOrdinal);
+            }
+            else {
+                szFunctionName = ((PIMAGE_IMPORT_BY_NAME)(lpImage + pIlt->u1.AddressOfData))->Name;
+            }
+
+            DWORD dwHash = 0;
+            for (DWORD i=0; szFunctionName[i]; i++) {
+                dwHash = (dwHash << 13) | (dwHash >> 19);
+                dwHash += szFunctionName[i];
+                // std::cout << std::hex << dwHash << std::endl;
+            }
+
+            // std::cout << szFunctionName << ": "  << std::hex << dwHash << std::endl;
+
+            if (dwHash == dwTargetHash) {
+                // std::cout << szFunctionName << " found!" << std::endl;
+
+                // The address of the IAT entry in the remote process
+                // PIMAGE_THUNK_DATA64 pImageIat = (PIMAGE_THUNK_DATA64)(lpImage + ((LPBYTE)pIat - lpBuf));
+
+                // std::cout << "Now patching 0x" << std::hex << pIat << std::endl;
+
+                // std::cout << "Original address: 0x" << std::hex << lpFunctionAddr << std::endl;
+
+                DWORD oldProtect = 0;
+                VirtualProtect((LPVOID)pIat, 8, PAGE_READWRITE, &oldProtect);
+
+                // Patch
+                pIat->u1.AddressOfData = (ULONGLONG)lpTramp;
 
                 return;
             }
