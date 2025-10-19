@@ -24,3 +24,21 @@ hex(((0xc6667616 << 12) | (0xc6667616 >> 20)) & 0xffffffff)
 
 ### Exercise 0.5
 0x1400014ac
+
+### Exercise 2.2
+MessageBoxExA
+
+### Exercise 2.3
+* psr.exe
+* usocoreworker.exe
+
+```c
+for (auto& [dllName, dllData] : table) {
+    // TODO: Write your code here
+    // Keys in dllData are function names
+    if (dllData.find(argv[1]) != dllData.end()) {
+        std::wcout << cFilePath << std::endl;
+        break;
+    }
+}
+```
