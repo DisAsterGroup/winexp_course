@@ -42,3 +42,15 @@ for (auto& [dllName, dllData] : table) {
     }
 }
 ```
+
+### Exercise 3.1
+seccamp_reh9dg3b4gnbd0ykihzb.com
+
+BeingDebugged を無効化する
+
+`inet_pton` の第2引数に着目
+
+```
+bp Client + 1320
+bp Client + 1473
+```
