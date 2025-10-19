@@ -25,6 +25,11 @@ hex(((0xc6667616 << 12) | (0xc6667616 >> 20)) & 0xffffffff)
 ### Exercise 0.5
 0x1400014ac
 
+### Exercise 2.1
+0x18288
+
+User32.dll の IDT を PE-bear で確認してみると、OriginalFirstThunk (ILT) は 0x19288 に存在することになっている。ただ、これは RVA の表記であり、RA では 0x18288 の位置に存在する。PE-bear で右クリックし、Follow RVA を選択すると、画面上のビューにもこのアドレスが表示される。
+
 ### Exercise 2.2
 MessageBoxExA
 
